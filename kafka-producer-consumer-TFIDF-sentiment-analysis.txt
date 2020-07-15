@@ -126,7 +126,7 @@ import kfkProducerWrapper.KafkaProducerWrapper
 // val brareTokens = sc.broadcast(rareTokens)
 
 result.foreachRDD( rdd  => {
-  val revCategories = for ((k,v) <- categories) yield (v.toDouble, k)
+  val revCategories = for ((k,v) <- categories) yield (v.toDouble, k.toString)
   val HashTF = hashingTF
   val IDFModel = idf
   val lrmodel = model
@@ -154,7 +154,7 @@ result.foreachRDD( rdd  => {
     val producer = KafkaProducerWrapper.instance
     val validPredicts = iter.map{ case(text,vector) => (lrmodel.predict(vector),text) }
     //validPredicts.foreach({ x => producer.send("metric", x._1.toString, x._2(0)) })
-    validPredicts.foreach({ x => producer.send("metric", revCategories(x._1).toString, x._2(0)) })
+    validPredicts.foreach({ x => producer.send("metric", revCategories(x._1), x._2(0)) })
   })
 })
  
