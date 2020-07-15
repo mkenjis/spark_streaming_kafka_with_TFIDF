@@ -123,9 +123,10 @@ val result = stream.map(record => (record.key, record.value))
 
 import kfkProducerWrapper.KafkaProducerWrapper
 
-// val revMap = for ((k,v) <- categories) yield (v.toDouble, k)
+// val brareTokens = sc.broadcast(rareTokens)
 
 result.foreachRDD( rdd  => {
+  val revCategories = for ((k,v) <- categories) yield (v.toDouble, k)
   val HashTF = hashingTF
   val IDFModel = idf
   val lrmodel = model
@@ -139,7 +140,7 @@ result.foreachRDD( rdd  => {
    .map(_.toLowerCase)
    .filter(token => regex.pattern.matcher(token).matches)
    .filterNot(token => stopwords.contains(token))
-//   .filterNot(token => rareTokens.contains(token))
+//   .filterNot(token => brareTokens.contains(token))
    .filter(token => token.size >= 2)
    .toSeq
   }
@@ -152,7 +153,8 @@ result.foreachRDD( rdd  => {
     KafkaProducerWrapper.brokerList = "ubkafka:9092"
     val producer = KafkaProducerWrapper.instance
     val validPredicts = iter.map{ case(text,vector) => (lrmodel.predict(vector),text) }
-    validPredicts.foreach({ x => producer.send("metric", x._1.toString, x._2(0)) })
+    //validPredicts.foreach({ x => producer.send("metric", x._1.toString, x._2(0)) })
+    validPredicts.foreach({ x => producer.send("metric", revCategories(x._1).toString, x._2(0)) })
   })
 })
  
