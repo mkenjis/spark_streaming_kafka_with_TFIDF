@@ -1,5 +1,7 @@
 # spark_streaming_kafka_with_TFIDF
 spark streaming kafka with TFIDF sentiment analysis
+- Source : Kaggle Dataset
+- URL : https://www.kaggle.com/crowdflower/twitter-airline-sentiment
 
 # Purpose:
 - use kafka to implement consumer and producer to be used by spark streaming.

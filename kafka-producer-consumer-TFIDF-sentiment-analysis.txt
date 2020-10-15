@@ -1,14 +1,32 @@
 
-val tweets = spark.read.format("csv").option("sep",",").option("quoteAll","true").load("virgin-twitter/virgin-tweets-noheader.csv").rdd
+val tweets = spark.read.format("csv").option("header","true").option("quoteAll","true").load("virgin-twitter/virgin-tweets.csv")
 
-val rdd1 = tweets.map( x => x.toSeq).map( x => x.toArray)
+scala> tweets.printSchema
+root
+ |-- tweet_id: string (nullable = true)
+ |-- airline_sentiment: string (nullable = true)
+ |-- airline_sentiment_confidence: string (nullable = true)
+ |-- negativereason: string (nullable = true)
+ |-- negativereason_confidence: string (nullable = true)
+ |-- airline: string (nullable = true)
+ |-- airline_sentiment_gold: string (nullable = true)
+ |-- name: string (nullable = true)
+ |-- negativereason_gold: string (nullable = true)
+ |-- retweet_count: string (nullable = true)
+ |-- text: string (nullable = true)
+ |-- tweet_coord: string (nullable = true)
+ |-- tweet_created: string (nullable = true)
+ |-- tweet_location: string (nullable = true)
+ |-- user_timezone: string (nullable = true)
+
+val rdd1 = tweets.rdd.map( x => x.toSeq).map( x => x.toArray)
 
 val categories = rdd1.map(x => x(1)).distinct.zipWithIndex.collect.toMap
 
-val rdd2 = rdd1.map( x => Array(x(10).toString,x(1).toString))
+val rdd = rdd1.map( x => Array(x(10).toString,x(1).toString))
 
 // remove nonword characters (such as punctuation).
-val nonWordSplit = rdd2.flatMap(x => x(0).split("""\W+""").map(_.toLowerCase))
+val nonWordSplit = rdd.flatMap(x => x(0).split("""\W+""").map(_.toLowerCase))
 
 // filter out numbers and tokens that are words mixed with numbers
 val regex = """[^0-9]*""".r
@@ -47,7 +65,7 @@ def tokenize(line: String): Seq[String] = {
 }
 
 
-val sets = rdd2.randomSplit(Array(0.8,0.2))
+val sets = rdd.randomSplit(Array(0.8,0.2))
 val trainSet = sets(0)
 val testSet = sets(1)
 
